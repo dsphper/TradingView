@@ -1,0 +1,31 @@
+//+------------------------------------------------------------------+
+//|                              Copyright © 2016-2017, Ronaldo Zani |
+//|                                          ronaldo.zani@uol.com.br |
+//+------------------------------------------------------------------+
+
+//@version=2
+study("DBB Zone")
+
+//http://www.fxacademy.com/learn/trading-with-double-bollinger-bands/dbbs-three-zones-three-rules
+//https://www.luckscout.com/double-bollinger-bands-strategy-to-trade-forex/
+
+basis = sma(close, period == 'D' ? 20 : 4)
+dev1 = 1 * stdev(close, period == 'D' ? 20 : 4)
+dev2 = 2 * stdev(close, period == 'D' ? 20 : 4)
+
+upper1 = basis + dev1
+lower1 = basis - dev1
+
+upper2 = basis + dev2
+lower2 = basis - dev2
+
+buyEntry = close > upper1 and close[1] < upper1[1] and close[2] < upper1[2]
+sellEntry = close < lower1 and close[1] > lower1[1] and close[2] > lower1[2]
+
+dbbZone = close > upper1 ? 2 : close < lower1 ? 3 : 1
+dbbZoneColor = dbbZone == 2 ? green : dbbZone == 3 ? red : black
+
+plot(dbbZone, title="DBBZone", color=dbbZoneColor, linewidth=10, style=histogram)
+
+plotshape(buyEntry, color=green, style=shape.cross, size=size.normal, text="B", location=location.top)
+plotshape(sellEntry, color=red, style=shape.cross, size=size.normal, text="S", location=location.top)

@@ -1,0 +1,84 @@
+//+------------------------------------------------------------------+
+//|                              Copyright © 2016-2017, Ronaldo Zani |
+//|                                          ronaldo.zani@uol.com.br |
+//+------------------------------------------------------------------+
+
+//@version=3
+study(shorttitle = "TripleSqueeze", title="Triple Squeeze", overlay=false)
+
+sym_10 = input(title="10", type=symbol, defval="BMFBOVESPA:IBOV")
+sym_9 = input(title="9", type=symbol, defval="BMFBOVESPA:IBXX")
+sym_8 = input(title="8", type=symbol, defval="BMFBOVESPA:SMLL")
+sym_7 = input(title="7", type=symbol, defval="BMFBOVESPA:IFNC")
+sym_6 = input(title="6", type=symbol, defval="BMFBOVESPA:ICON")
+sym_5 = input(title="5", type=symbol, defval="BMFBOVESPA:IMOB")
+sym_4 = input(title="4", type=symbol, defval="BMFBOVESPA:IEEX")
+sym_3 = input(title="3", type=symbol, defval="BMFBOVESPA:UTIL")
+sym_2 = input(title="2", type=symbol, defval="BMFBOVESPA:IMAT")
+sym_1 = input(title="1", type=symbol, defval="BMFBOVESPA:INDX")
+
+my_squeeze(symbol) =>
+    length = 20
+    mult = 2.0
+    lengthKC = 20
+    multKC = 1.5
+	priceC1 = security(symbol, period, close)
+	priceH1 = security(symbol, period, high)
+	priceL1 = security(symbol, period, low)
+	// Calculate BB
+	basis = sma(priceC1, length)
+	dev = mult * stdev(priceC1, length)
+	upperBB = basis + dev
+	lowerBB = basis - dev
+	// Calculate KC
+	ma = sma(priceC1, lengthKC)
+	range = max(priceC1[1], priceH1) - min(priceC1[1], priceL1)
+	rangema = sma(range, lengthKC)
+	upperKC = ma + rangema * multKC
+	lowerKC = ma - rangema * multKC
+	sqzOn  = (lowerBB > lowerKC) and (upperBB < upperKC)
+	sqzOff = (lowerBB < lowerKC) and (upperBB > upperKC)
+	noSqz  = (sqzOn == false) and (sqzOff == false)
+	[sqzOn, sqzOff, noSqz]
+
+
+[sqzOn1, sqzOff1, noSqz1] = my_squeeze(sym_10)
+[sqzOn2, sqzOff2, noSqz2] = my_squeeze(sym_9)
+[sqzOn3, sqzOff3, noSqz3] = my_squeeze(sym_8)
+[sqzOn4, sqzOff4, noSqz4] = my_squeeze(sym_7)
+[sqzOn5, sqzOff5, noSqz5] = my_squeeze(sym_6)
+[sqzOn6, sqzOff6, noSqz6] = my_squeeze(sym_5)
+[sqzOn7, sqzOff7, noSqz7] = my_squeeze(sym_4)
+[sqzOn8, sqzOff8, noSqz8] = my_squeeze(sym_3)
+[sqzOn9, sqzOff9, noSqz9] = my_squeeze(sym_2)
+[sqzOn10, sqzOff10, noSqz10] = my_squeeze(sym_1)
+
+scolor1 = noSqz1 ? black : sqzOn1 ? red : lime
+plot(10, color=scolor1, style=circles, linewidth=3)
+
+scolor2 = noSqz2 ? black : sqzOn2 ? red : lime
+plot(9, color=scolor2, style=circles, linewidth=3)
+
+scolor3 = noSqz3 ? black : sqzOn3 ? red : lime
+plot(8, color=scolor3, style=circles, linewidth=3)
+
+scolor4 = noSqz4 ? black : sqzOn4 ? red : lime
+plot(7, color=scolor4, style=circles, linewidth=3)
+
+scolor5 = noSqz5 ? black : sqzOn5 ? red : lime
+plot(6, color=scolor5, style=circles, linewidth=3)
+
+scolor6 = noSqz6 ? black : sqzOn6 ? red : lime
+plot(5, color=scolor6, style=circles, linewidth=3)
+
+scolor7 = noSqz7 ? black : sqzOn7 ? red : lime
+plot(4, color=scolor7, style=circles, linewidth=3)
+
+scolor8 = noSqz8 ? black : sqzOn8 ? red : lime
+plot(3, color=scolor8, style=circles, linewidth=3)
+
+scolor9 = noSqz9 ? black : sqzOn9 ? red : lime
+plot(2, color=scolor9, style=circles, linewidth=3)
+
+scolor10 = noSqz10 ? black : sqzOn10 ? red : lime
+plot(1, color=scolor10, style=circles, linewidth=3)

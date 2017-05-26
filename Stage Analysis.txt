@@ -1,0 +1,31 @@
+//+------------------------------------------------------------------+
+//|                              Copyright © 2016-2017, Ronaldo Zani |
+//|                                          ronaldo.zani@uol.com.br |
+//+------------------------------------------------------------------+
+
+//@version=2
+study(title = "Stage Analysis")
+
+ema = ema(close, period == 'D' ? 50 : 10)
+wma = wma(close, period == 'D' ? 150 : 30)
+atr3 = atr(period == 'D' ? 14 : 3)
+
+distATR = (close - wma) / atr3
+
+stages = if ((close > wma) and (wma > wma[3]) and (distATR > 0.5))
+    2
+else
+    if ((close < wma) and (wma < wma[3]) and (distATR < -0.5))
+        4
+    else
+        if (stages[1] == 2)
+            3
+        else
+            if (stages[1] == 4)
+                1
+            else
+                stages[1]
+
+stagesZoneColor = stages == 2 ? green : stages == 4 ? red : stages == 3 ? yellow : stages == 1 ? black : white
+
+plot(stages, color=stagesZoneColor, style=histogram, linewidth=10)
