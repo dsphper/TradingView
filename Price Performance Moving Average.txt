@@ -1,0 +1,59 @@
+//@version=3
+study("Price Performance Moving Average", precision=4, overlay=true)
+
+// Percent Gain to check in 10 days
+pct_gain = input(6, minval=1, title="%Gain 10 days")
+
+// Moving Averages
+ema10_plot = ema(close, 10)
+wma30_plot = wma(close, 30)
+ema10_plot_intraday = security(ticker, "240", ema(close,10))
+
+// Trend Template Minervini (using daily data)
+closeD = security(ticker, "D", close)
+ema10 = security(ticker, "D", ema(close,10))
+sma50 = security(ticker, "D", sma(close,50))
+sma150 = security(ticker, "D", sma(close,150))
+sma200 = security(ticker, "D", sma(close,200))
+
+step1 = closeD > sma150 and closeD > sma200
+step2 = sma150 > sma200
+step3 = sma200 > sma200[20]
+step4 = sma50 > sma150 and sma50 > sma200
+step5 = closeD > sma50
+step6 = (((closeD / lowest(closeD[1],252))-1)*100) >= 30
+step7 = (((closeD / highest(closeD[1],252))-1)*100) >= -25
+
+return10 = ((closeD / closeD[10])-1)*100
+
+buy_success = step1 and step2 and step3 and step4 and step5 and step6 and step7
+sell_success = (not step1) and (not step2) and (not step3) and (not step4) and (not step5) and (not step6) and (not step7)
+
+close_index = security("SPX", period, close)
+
+//Relative Strength (Dorsey)
+//http://www.chartmill.com/documentation.php?a=390&o=1506
+RSD = (close/close_index) * 100
+
+//http://www.chartmill.com/documentation.php?a=1125&title=Weinstein%20stage%20analysis%20in%20chartmill&o=1506
+
+//http://www.chartmill.com/documentation.php?a=398&title=Relative%20Strength%20(Mansfield)&o=1506
+//Relative Strength (Mansfield)
+//This variant of Relative Strength was used in the book “Secrets For Profiting in Bull and Bear Markets’ by Stan Weinstein. 
+//Weinstein was using the indicator mainly on weekly charts.
+//Stan Weinstein used the indicator only on weekly charts with 52 as the parameter value for n. 
+//He insisted that break outs out of a base had to go together with rising relative strength. The Mansfield RS needs to be rising an close to or above 0.
+RSM = (( RSD / sma(RSD, period == 'D' ? 200 : 52)) -1 ) * 100
+
+//RSI(2) strategy flag
+vrsi = rsi(close, 2)
+
+//hline(0, title="", linestyle=solid, color=black, linewidth=2)
+//plot(RSM, color=RSD > RSD[1] ? green : red, linewidth=2)
+
+plot(ema10_plot_intraday, title="EMA(10)-Intraday", color=close > ema10_plot_intraday ? lime : red, linewidth=2)
+plot(ema10_plot, title="EMA(10)", color=close > ema10_plot ? lime : red, linewidth=3)
+plot(wma30_plot, title="WMA(30)", color=close > wma30_plot ? aqua : red, linewidth=4)
+
+plot(ema10_plot, title="RSI(2)", style=cross, color=vrsi < 6 ? yellow : black, linewidth=3)
+plot(wma30_plot, title="Minervini Trend Template", style=circles, color=buy_success ? lime : sell_success ? red : white, linewidth=3)
