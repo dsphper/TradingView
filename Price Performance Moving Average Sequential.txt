@@ -1,0 +1,130 @@
+//@version=2
+study("Price Performance Moving Average", precision=4, overlay=true)
+
+//TD Sequential
+transp=input(0)
+Numbers=input(true)
+SR=input(true)
+Barcolor=input(true)
+TD = close > close[4] ?nz(TD[1])+1:0
+TS = close < close[4] ?nz(TS[1])+1:0
+
+TDUp = TD - valuewhen(TD < TD[1], TD , 1 )
+TDDn = TS - valuewhen(TS < TS[1], TS , 1 )
+
+// Percent Gain to check in 10 days
+pct_gain = input(6, minval=1, title="%Gain 10 days")
+
+// Moving Averages
+ema10_plot = ema(close, 10)
+wma30_plot = wma(close, 30)
+ema10_plot_intraday = security(ticker, "240", ema(close,10))
+
+// Trend Template Minervini (using daily data)
+closeD = security(ticker, "D", close)
+ema10 = security(ticker, "D", ema(close,10))
+sma50 = security(ticker, "D", sma(close,50))
+sma150 = security(ticker, "D", sma(close,150))
+sma200 = security(ticker, "D", sma(close,200))
+
+step1 = closeD > sma150 and closeD > sma200
+step2 = sma150 > sma200
+step3 = sma200 > sma200[20]
+step4 = sma50 > sma150 and sma50 > sma200
+step5 = closeD > sma50
+step6 = (((closeD / lowest(closeD[1],252))-1)*100) >= 30
+step7 = (((closeD / highest(closeD[1],252))-1)*100) >= -25
+
+return10 = ((closeD / closeD[10])-1)*100
+
+buy_success = step1 and step2 and step3 and step4 and step5 and step6 and step7
+sell_success = (not step1) and (not step2) and (not step3) and (not step4) and (not step5) and (not step6) and (not step7)
+
+close_index = security("SPX", period, close)
+
+//Relative Strength (Dorsey)
+//http://www.chartmill.com/documentation.php?a=390&o=1506
+RSD = (close/close_index) * 100
+
+//http://www.chartmill.com/documentation.php?a=1125&title=Weinstein%20stage%20analysis%20in%20chartmill&o=1506
+
+//http://www.chartmill.com/documentation.php?a=398&title=Relative%20Strength%20(Mansfield)&o=1506
+//Relative Strength (Mansfield)
+//This variant of Relative Strength was used in the book “Secrets For Profiting in Bull and Bear Markets’ by Stan Weinstein. 
+//Weinstein was using the indicator mainly on weekly charts.
+//Stan Weinstein used the indicator only on weekly charts with 52 as the parameter value for n. 
+//He insisted that break outs out of a base had to go together with rising relative strength. The Mansfield RS needs to be rising an close to or above 0.
+RSM = (( RSD / sma(RSD, period == 'D' ? 200 : 52)) -1 ) * 100
+
+//RSI(2) strategy flag
+vrsi = rsi(close, 2)
+
+//hline(0, title="", linestyle=solid, color=black, linewidth=2)
+//plot(RSM, color=RSD > RSD[1] ? green : red, linewidth=2)
+
+plot(ema10_plot_intraday, title="EMA(10)-Intraday", color=close > ema10_plot_intraday ? lime : red, linewidth=2)
+plot(ema10_plot, title="EMA(10)", color=close > ema10_plot ? lime : red, linewidth=3)
+plot(wma30_plot, title="WMA(30)", color=close > wma30_plot ? aqua : red, linewidth=4)
+
+plot(ema10_plot, title="RSI(2)", style=cross, color=vrsi < 6 ? yellow : black, linewidth=3)
+plot(wma30_plot, title="Minervini Trend Template", style=circles, color=buy_success ? lime : sell_success ? red : white, linewidth=3)
+
+//TD Sequential
+plotshape(Numbers?(TDUp==1?true:na):na,style=shape.triangledown,text="1",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==2?true:na):na,style=shape.triangledown,text="2",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==3?true:na):na,style=shape.triangledown,text="3",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==4?true:na):na,style=shape.triangledown,text="4",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==5?true:na):na,style=shape.triangledown,text="5",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==6?true:na):na,style=shape.triangledown,text="6",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==7?true:na):na,style=shape.triangledown,text="7",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==8?true:na):na,style=shape.triangledown,text="8",color=green,location=location.abovebar,transp=transp)
+plotshape(Numbers?(TDUp==9?true:na):na,style=shape.triangledown,text="9",color=green,location=location.abovebar,transp=transp)
+
+plotshape(Numbers?(TDDn==1?true:na):na,style=shape.triangleup,text="1",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==2?true:na):na,style=shape.triangleup,text="2",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==3?true:na):na,style=shape.triangleup,text="3",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==4?true:na):na,style=shape.triangleup,text="4",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==5?true:na):na,style=shape.triangleup,text="5",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==6?true:na):na,style=shape.triangleup,text="6",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==7?true:na):na,style=shape.triangleup,text="7",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==8?true:na):na,style=shape.triangleup,text="8",color=red,location=location.belowbar,transp=transp)
+plotshape(Numbers?(TDDn==9?true:na):na,style=shape.triangleup,text="9",color=red,location=location.belowbar,transp=transp)
+
+// S/R Code By johan.gradin
+//------------//
+// Sell Setup //
+//------------//
+priceflip = barssince(close<close[4])
+sellsetup = close>close[4] and priceflip
+sell = sellsetup and barssince(priceflip!=9)
+sellovershoot = sellsetup and barssince(priceflip!=13)
+sellovershoot1 = sellsetup and barssince(priceflip!=14)
+sellovershoot2 = sellsetup and barssince(priceflip!=15)
+sellovershoot3 = sellsetup and barssince(priceflip!=16)
+
+//----------//
+// Buy setup//
+//----------//
+priceflip1 = barssince(close>close[4])
+buysetup = close<close[4] and priceflip1
+buy = buysetup and barssince(priceflip1!=9)
+buyovershoot = barssince(priceflip1!=13) and buysetup
+buyovershoot1 = barssince(priceflip1!=14) and buysetup
+buyovershoot2 = barssince(priceflip1!=15) and buysetup
+buyovershoot3 = barssince(priceflip1!=16) and buysetup
+
+//----------//
+// TD lines //
+//----------//
+TDbuyh = valuewhen(buy,high,0)
+TDbuyl = valuewhen(buy,low,0)
+TDsellh = valuewhen(sell,high,0)
+TDselll = valuewhen(sell,low,0)
+
+//----------//
+//   Plots  //
+//----------//
+
+plot(SR?(TDbuyh ? TDbuyl: na):na,style=circles, linewidth=1, color=red)
+plot(SR?(TDselll ? TDsellh : na):na,style=circles, linewidth=1, color=lime)
+barcolor(Barcolor?(sell? #FF0000 : buy? #00FF00 : sellovershoot? #FF66A3 : sellovershoot1? #FF3385 : sellovershoot2? #FF0066 : sellovershoot3? #CC0052 : buyovershoot? #D6FF5C : buyovershoot1? #D1FF47 : buyovershoot2? #B8E62E : buyovershoot3? #8FB224 : na):na)
